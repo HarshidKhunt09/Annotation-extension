@@ -1,0 +1,21 @@
+{
+  "token": {
+    "colorPrimary": "#425FC7",
+    "radiusBase": "4px",
+    "controlRadius": "4px",
+    "colorLink": "#425FC7",
+    "colorLinkActive": "#425FC7",
+    "colorLinkHover": "#425FC7",
+    "fontFamily": "unset"
+  },
+  "components": {
+    "Typography": {
+      "fontSizeHeading3": "clamp(20px, 4.6vw, 24px)"
+    },
+    "Button": {
+      "borderRadius": 4,
+      "colorPrimary": "#425FC7",
+      "colorPrimaryHover": "#425FC7"
+    }
+  }
+}

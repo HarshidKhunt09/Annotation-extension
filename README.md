@@ -1,0 +1,1 @@
+# GA4 Notes - Annotations for Google Analytics 4

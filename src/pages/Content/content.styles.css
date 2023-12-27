@@ -1,0 +1,8 @@
+.note-icon {
+    cursor: pointer;
+}
+
+.note-icon:hover .comment-icon {
+    stroke: #425FC7;
+    stroke-width: 3px;
+}

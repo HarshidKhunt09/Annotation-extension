@@ -1,0 +1,81 @@
+.sheet-form {
+  width: 350px;
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.ga4-notes-title {
+  font-size: larger;
+}
+
+.google-button {
+  display: inline-block;
+  padding: 0.625rem 1.5rem;
+  cursor: pointer;
+  background-color: #ffff;
+  color: #4285F4;
+  border: 1px solid #4285F4;
+  border-radius: 9999px;
+  outline: none;
+  transition: opacity 0.3s;
+}
+
+.google-button:hover {
+  opacity: 0.8;
+}
+
+.google-button svg {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
+
+.google-button-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.google-button-text:hover {
+  text-decoration: underline;
+}
+
+.connect-account {
+  font-size: 16px;
+  padding: 20px;
+  text-align: center;
+  line-height: 25px;
+  font-weight: bolder;
+}
+
+.analytic-data {
+  font-size: 14px;
+  padding-top: 20px;
+  text-align: center;
+  line-height: 25px;
+}
+
+.guide {
+  font-size: 14px;
+  padding: 20px;
+  text-align: center;
+  line-height: 25px;
+  text-decoration: underline;
+}
+
+.add-annotation {
+  color: black;
+  margin-bottom: 30px;
+  margin-top: 30px;
+}
+
+.btn-submit .ant-btn {
+  min-width: 100px;
+}

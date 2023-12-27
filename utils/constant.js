@@ -1,0 +1,5 @@
+export const SCREENS = {
+  LOGIN: 'LOGIN',
+  SHEET: 'SHEET',
+  ADD_ANNOTATION: 'ADD_ANNOTATION',
+};
