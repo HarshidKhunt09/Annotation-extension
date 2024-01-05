@@ -304,15 +304,6 @@ async function modifyPage() {
                   if (chart) {
                     let targetPosition;
 
-                    if (startDate === endDate) {
-                      targetPosition = xAxisWidth / 2 - 4;
-                    } else {
-                      targetPosition =
-                        ((targetDate - startDate) / (endDate - startDate)) *
-                          xAxisWidth -
-                        4;
-                    }
-
                     const content = (
                       <div>
                         {value?.items?.map((item, index) => (
