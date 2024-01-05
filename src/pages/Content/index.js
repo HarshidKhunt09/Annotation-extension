@@ -184,6 +184,9 @@ async function modifyPage() {
               );
               let body = await getData.json();
               const dataHashInitial = calculateDataHash(body);
+              if (!previousSheetDataHash) {
+                previousSheetDataHash = dataHashInitial;
+              }
               if (dataHashInitial !== previousSheetDataHash) {
                 chrome.runtime.sendMessage({ action: 'reloadAnalytics' });
               } else {
@@ -284,23 +287,6 @@ async function modifyPage() {
               .querySelectorAll(`.${labelClass}`)
               .forEach((element) => element.remove());
 
-            function convertToYYYYMMDD(inputDate) {
-              const inputDateObject = new Date(inputDate);
-
-              if (isNaN(inputDateObject.getTime())) {
-                return 'Invalid date';
-              }
-
-              const year = inputDateObject.getFullYear();
-              const month = String(inputDateObject.getMonth() + 1).padStart(
-                2,
-                '0'
-              );
-              const day = String(inputDateObject.getDate()).padStart(2, '0');
-
-              return `${year}/${month}/${day}`;
-            }
-
             resultArray.forEach((value) => {
               const dateFormatRegex = /^\d{4}-\d{2}-\d{2}$/;
               if (value && value?.date && dateFormatRegex.test(value?.date)) {
@@ -317,6 +303,15 @@ async function modifyPage() {
                   const chart = document.querySelector('.line-chart');
                   if (chart) {
                     let targetPosition;
+
+                    if (startDate === endDate) {
+                      targetPosition = xAxisWidth / 2 - 4;
+                    } else {
+                      targetPosition =
+                        ((targetDate - startDate) / (endDate - startDate)) *
+                          xAxisWidth -
+                        4;
+                    }
 
                     const content = (
                       <div>

@@ -1,7 +1,7 @@
 {
-  "name": "GA4 Notes - Annotations for GA4",
+  "name": "Google Analytics 4 Annotations - GA4 Notes",
   "version": "0.0.1",
-  "description": "Add annotations to your Google Analytics 4 data using the GA4 Notes Chrome extension.",
+  "description": "Add annotations to your Google Analytics 4 charts and get context about GA4 data.",
   "scripts": {
     "build": "node utils/build.js",
     "start": "node utils/webserver.js",
