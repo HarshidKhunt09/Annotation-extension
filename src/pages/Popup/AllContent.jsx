@@ -21,6 +21,7 @@ const AllContent = () => {
             if (chrome.runtime.lastError) {
               // console.log(chrome.runtime.lastError.message);
             }
+
             dispatch({
               type: 'SET_CURRENT_SCREEN',
               data:

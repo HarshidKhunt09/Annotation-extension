@@ -32,23 +32,55 @@ const NavBar = () => {
   }, [currentScreen]);
 
   const handleLogout = () => {
-    chrome.storage.local.clear();
-    chrome.identity.clearAllCachedAuthTokens(() => {
-      setToken();
-      dispatch({
-        type: 'SET_CURRENT_SCREEN',
-        data: SCREENS?.LOGIN,
-      });
-      const reloadGoogleAnalyticsTabs = async () => {
-        const tabs = await chrome.tabs.query({});
-
-        tabs.forEach((tab) => {
-          if (tab.url && tab.url.includes('https://analytics.google.com/')) {
-            chrome.tabs.reload(tab.id);
+    function revokeToken(callback) {
+      chrome.identity.getAuthToken(
+        { interactive: false },
+        function (current_token) {
+          if (!chrome.runtime.lastError) {
+            chrome.identity.removeCachedAuthToken({ token: current_token });
+            const xhr = new XMLHttpRequest();
+            xhr.open(
+              'GET',
+              'https://accounts.google.com/o/oauth2/revoke?token=' +
+                current_token
+            );
+            xhr.onload = function () {
+              if (xhr.status === 200) {
+                callback(null);
+              } else {
+                callback(new Error('Token revocation failed'));
+              }
+            };
+            xhr.onerror = function () {
+              callback(new Error('Network error'));
+            };
+            xhr.send();
+          } else {
+            callback(new Error('Failed to get current token'));
           }
+        }
+      );
+    }
+
+    chrome.storage.local.clear();
+    revokeToken(function () {
+      chrome.identity.clearAllCachedAuthTokens(() => {
+        setToken();
+        dispatch({
+          type: 'SET_CURRENT_SCREEN',
+          data: SCREENS?.LOGIN,
         });
-      };
-      reloadGoogleAnalyticsTabs();
+        const reloadGoogleAnalyticsTabs = async () => {
+          const tabs = await chrome.tabs.query({});
+
+          tabs.forEach((tab) => {
+            if (tab.url && tab.url.includes('https://analytics.google.com/')) {
+              chrome.tabs.reload(tab.id);
+            }
+          });
+        };
+        reloadGoogleAnalyticsTabs();
+      });
     });
   };
 
@@ -96,7 +128,12 @@ const NavBar = () => {
         <div className="ga4-notes-title">GA4 Notes</div>
       </div>
       <div className="d-flex">
-        <div className="pointer nav-item">Help Docs</div>
+        <div
+          className="pointer nav-item"
+          onClick={() => window.open('https://help.ga4notes.com/')}
+        >
+          Help Docs
+        </div>
         {token && (
           <div onClick={handleLogout} className="pointer nav-item ml-24">
             Logout

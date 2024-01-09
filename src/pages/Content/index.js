@@ -131,18 +131,20 @@ const Loading = () => (
 
 function showLoadingIndicator() {
   const content = document.querySelector('.app-content');
-  content.style.position = 'relative';
-  const label = document.createElement('div');
-  label.style.position = 'absolute';
-  label.style.top = '20px';
-  label.style.right = '150px';
-  label.style.zIndex = '999';
-  label.style.textAlign = 'center';
-  label.className = 'GA4-loading';
+  if (content) {
+    content.style.position = 'relative';
+    const label = document.createElement('div');
+    label.style.position = 'absolute';
+    label.style.top = '20px';
+    label.style.right = '150px';
+    label.style.zIndex = '999';
+    label.style.textAlign = 'center';
+    label.className = 'GA4-loading';
 
-  ReactDOM.render(<Loading />, label);
+    ReactDOM.render(<Loading />, label);
 
-  content.appendChild(label);
+    content.appendChild(label);
+  }
 }
 
 function hideLoadingIndicator() {
@@ -303,6 +305,15 @@ async function modifyPage() {
                   const chart = document.querySelector('.line-chart');
                   if (chart) {
                     let targetPosition;
+
+                    if (startDate === endDate) {
+                      targetPosition = xAxisWidth / 2 - 4;
+                    } else {
+                      targetPosition =
+                        ((targetDate - startDate) / (endDate - startDate)) *
+                          xAxisWidth -
+                        4;
+                    }
 
                     const content = (
                       <div>

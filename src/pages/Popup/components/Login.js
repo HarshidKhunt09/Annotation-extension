@@ -256,7 +256,16 @@ const Login = () => {
       <div className="analytic-data">
         Don't worry! We don't store your analytics data.
       </div>
-      <div className="guide pointer">2-min Video Guide</div>
+      <div
+        className="guide pointer"
+        onClick={() =>
+          window.open(
+            'https://www.loom.com/share/a43c5ab228164733aab1f0d14b126518?sid=02976834-515c-423a-889e-6d73fbd767d4'
+          )
+        }
+      >
+        2-min Video Guide
+      </div>
       {/* <Button onClick={handleBtn}>This is Button</Button> */}
     </div>
   );
