@@ -9,6 +9,7 @@ import {
   push,
   query,
 } from '../../firebase-database';
+// import { getFunctions, httpsCallable } from '../../firebase-functions';
 
 // console.log('Background Script Loaded');
 
@@ -125,21 +126,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  const configs = {
+    apiKey: 'AIzaSyBz2NXNZ_3PJAawNDUoIolW5cuO9x7i4Xs',
+    authDomain: 'ga4-notes-3e831.firebaseapp.com',
+    projectId: 'ga4-notes-3e831',
+    storageBucket: 'ga4-notes-3e831.appspot.com',
+    messagingSenderId: '81175638260',
+    appId: '1:81175638260:web:45af8a000f082a4186eea1',
+  };
+
+  const app = !getApps().length ? initializeApp(configs) : getApp();
+  // const functions = getFunctions(app);
+  const database = getDatabase(app);
+  const userRef = ref(database, 'users');
+
   if (message.action === 'loadFirebase') {
-    const configs = {
-      apiKey: 'AIzaSyBz2NXNZ_3PJAawNDUoIolW5cuO9x7i4Xs',
-      authDomain: 'ga4-notes-3e831.firebaseapp.com',
-      projectId: 'ga4-notes-3e831',
-      storageBucket: 'ga4-notes-3e831.appspot.com',
-      messagingSenderId: '81175638260',
-      appId: '1:81175638260:web:45af8a000f082a4186eea1',
-    };
-
-    const app = !getApps().length ? initializeApp(configs) : getApp();
-    const database = getDatabase(app);
-    const userRef = ref(database, 'users');
-
     const userQuery = query(
       userRef,
       orderByChild('email'),
@@ -147,6 +149,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     );
 
     try {
+      // const createStripeCustomer = httpsCallable(
+      //   functions,
+      //   'createStripeCustomer'
+      // );
+
       const fetchQuery = async () => {
         const snapshot = await get(userQuery);
         if (snapshot.exists()) {
@@ -154,6 +161,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         } else {
           const newUserRef = push(userRef);
           await set(newUserRef, message?.userData);
+
+          // await createStripeCustomer({
+          //   body: {
+          //     email: message?.userData?.email,
+          //     displayName: message?.userData?.name,
+          //   },
+          // });
           sendResponse({ userRef: newUserRef });
         }
       };
@@ -163,5 +177,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ error: 'Error processing loadFirebase message' });
     }
     return true;
+  }
+
+  if (message.action === 'checkout') {
+    async function getUserDetailsByEmail(email) {
+      try {
+        const snapshot = await get(userRef);
+
+        if (snapshot.exists()) {
+          for (const userId in snapshot.val()) {
+            const user = snapshot.val()[userId];
+            if (user.email === email) {
+              return user;
+            }
+          }
+        }
+        return null;
+      } catch (error) {
+        console.log('Error retrieving user details:', error);
+      }
+    }
+
+    console.log(message?.userEmail);
+    const userDetails = await getUserDetailsByEmail(message?.userEmail);
+
+    if (userDetails) {
+      console.log('User Details:', userDetails);
+    } else {
+      console.log('User not found with the specified email.');
+    }
   }
 });

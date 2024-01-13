@@ -256,6 +256,22 @@ const Login = () => {
       <div className="analytic-data">
         Don't worry! We don't store your analytics data.
       </div>
+      <div className="disclosure-data">
+        Disclosure: GA4 Notes use and transfer to any other app of information
+        received from Google APIs will adhere to{' '}
+        <span
+          onClick={() => {
+            chrome.tabs.update({
+              url: 'https://developers.google.com/terms/api-services-user-data-policy',
+            });
+          }}
+          className="policy-link"
+          style={{ cursor: 'pointer' }}
+        >
+          Google API Services User Data Policy
+        </span>
+        , including the Limited Use requirements.
+      </div>
       <div
         className="guide pointer"
         onClick={() =>

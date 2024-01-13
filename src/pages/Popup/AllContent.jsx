@@ -4,6 +4,7 @@ import { SCREENS } from '../../../utils/constant';
 import Login from './components/Login';
 import SheetForm from './components/SheetForm';
 import AddAnnotationForm from './components/AddAnnotationForm';
+import CheckoutPage from './components/CheckoutPage';
 
 const AllContent = () => {
   const {
@@ -43,6 +44,7 @@ const AllContent = () => {
 
   return (
     <>
+      {/* <CheckoutPage /> */}
       {currentScreen === SCREENS?.LOGIN && <Login />}
       {currentScreen === SCREENS?.SHEET && <SheetForm />}
       {currentScreen === SCREENS?.ADD_ANNOTATION && <AddAnnotationForm />}
