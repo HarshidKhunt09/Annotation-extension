@@ -31,41 +31,40 @@ const NavBar = () => {
     }
   }, [currentScreen]);
 
-  const handleLogout = () => {
-    function revokeToken(callback) {
-      chrome.identity.getAuthToken(
-        { interactive: false },
-        function (current_token) {
-          if (!chrome.runtime.lastError) {
-            chrome.identity.removeCachedAuthToken({ token: current_token });
-            const xhr = new XMLHttpRequest();
-            xhr.open(
-              'GET',
-              'https://accounts.google.com/o/oauth2/revoke?token=' +
-                current_token
-            );
-            xhr.onload = function () {
-              if (xhr.status === 200) {
-                callback(null);
-              } else {
-                callback(new Error('Token revocation failed'));
-              }
-            };
-            xhr.onerror = function () {
-              callback(new Error('Network error'));
-            };
-            xhr.send();
-          } else {
-            callback(new Error('Failed to get current token'));
-          }
+  function revokeToken(callback) {
+    chrome.identity.getAuthToken(
+      { interactive: false },
+      function (current_token) {
+        if (!chrome.runtime.lastError) {
+          chrome.identity.removeCachedAuthToken({ token: current_token });
+          const xhr = new XMLHttpRequest();
+          xhr.open(
+            'GET',
+            'https://accounts.google.com/o/oauth2/revoke?token=' + current_token
+          );
+          xhr.onload = function () {
+            if (xhr.status === 200) {
+              callback(null);
+            } else {
+              callback(new Error('Token revocation failed'));
+            }
+          };
+          xhr.onerror = function () {
+            callback(new Error('Network error'));
+          };
+          xhr.send();
+        } else {
+          callback(new Error('Failed to get current token'));
         }
-      );
-    }
+      }
+    );
+  }
 
-    chrome.storage.local.clear();
+  const handleLogout = () => {
     revokeToken(function () {
       chrome.identity.clearAllCachedAuthTokens(() => {
         setToken();
+        chrome.storage.local.clear();
         dispatch({
           type: 'SET_CURRENT_SCREEN',
           data: SCREENS?.LOGIN,

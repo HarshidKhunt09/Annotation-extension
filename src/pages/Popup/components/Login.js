@@ -130,14 +130,19 @@ const Login = () => {
                               userData: data,
                             },
                             (response) => {
-                              console.log('RES LOGIN', response);
+                              // console.log('RES LOGIN', response);
                               if (!response?.error) {
                                 dispatch({
                                   type: 'SET_CURRENT_SCREEN',
                                   data: SCREENS?.SHEET,
                                 });
+
+                                console.log(data);
                                 chrome.storage.local.set({
                                   email: data?.email,
+                                });
+                                chrome.storage.local.set({
+                                  name: data?.name,
                                 });
                               }
                             }

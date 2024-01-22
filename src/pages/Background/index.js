@@ -126,7 +126,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const configs = {
     apiKey: 'AIzaSyBz2NXNZ_3PJAawNDUoIolW5cuO9x7i4Xs',
     authDomain: 'ga4-notes-3e831.firebaseapp.com',
@@ -179,32 +179,69 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.action === 'checkout') {
-    async function getUserDetailsByEmail(email) {
-      try {
-        const snapshot = await get(userRef);
+  // if (message.action === 'checkout') {
+  //   async function getUserDetailsByEmail(email) {
+  //     try {
+  //       const snapshot = await get(userRef);
 
-        if (snapshot.exists()) {
-          for (const userId in snapshot.val()) {
-            const user = snapshot.val()[userId];
-            if (user.email === email) {
-              return user;
+  //       if (snapshot.exists()) {
+  //         for (const userId in snapshot.val()) {
+  //           const user = snapshot.val()[userId];
+  //           if (user.email === email) {
+  //             return user;
+  //           }
+  //         }
+  //       }
+  //       return null;
+  //     } catch (error) {
+  //       console.log('Error retrieving user details:', error);
+  //     }
+  //   }
+
+  //   console.log(message?.userEmail);
+  //   const userDetails = await getUserDetailsByEmail(message?.userEmail);
+
+  //   if (userDetails) {
+  //     console.log('User Details:', userDetails);
+  //   } else {
+  //     console.log('User not found with the specified email.');
+  //   }
+  // }
+});
+
+chrome.runtime.onInstalled.addListener(() => {
+  revokeToken(() => {
+    chrome.identity.clearAllCachedAuthTokens(() => {
+      chrome.storage.local.clear();
+      console.log('Google Auth token revoked and storage cleared');
+    });
+  });
+});
+
+function revokeToken(callback) {
+  chrome.identity.getAuthToken(
+    { interactive: false },
+    function (current_token) {
+      if (!chrome.runtime.lastError) {
+        const revokeUrl =
+          'https://accounts.google.com/o/oauth2/revoke?token=' + current_token;
+
+        chrome.identity.launchWebAuthFlow(
+          {
+            url: revokeUrl,
+            interactive: false,
+          },
+          function () {
+            if (chrome.runtime.lastError) {
+              callback(new Error('Token revocation failed'));
+            } else {
+              callback(null);
             }
           }
-        }
-        return null;
-      } catch (error) {
-        console.log('Error retrieving user details:', error);
+        );
+      } else {
+        callback(new Error('Failed to get current token'));
       }
     }
-
-    console.log(message?.userEmail);
-    const userDetails = await getUserDetailsByEmail(message?.userEmail);
-
-    if (userDetails) {
-      console.log('User Details:', userDetails);
-    } else {
-      console.log('User not found with the specified email.');
-    }
-  }
-});
+  );
+}

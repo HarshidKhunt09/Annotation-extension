@@ -39,7 +39,7 @@ const SheetForm = () => {
 
           try {
             const response = await fetch(
-              `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:F`,
+              `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:G`,
               {
                 method: 'GET',
                 headers: {

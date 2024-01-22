@@ -30,7 +30,7 @@ const AddAnnotationForm = () => {
   const onFinish = async (values) => {
     setIsLoading(true);
     const items = await chrome.storage.local.get();
-    const range = 'Sheet1!A:E';
+    const range = 'Sheet1!A:G';
     const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${items?.sheetId}/values/${range}:append?valueInputOption=RAW`;
 
     const inputDate = new Date(values?.date);
@@ -48,6 +48,7 @@ const AddAnnotationForm = () => {
           values?.category?.trim(),
           values?.url?.trim(),
           items?.email,
+          items?.name,
         ],
       ],
     };

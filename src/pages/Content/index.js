@@ -175,7 +175,7 @@ async function modifyPage() {
             showLoadingIndicator();
             try {
               const getData = await fetch(
-                `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:F`,
+                `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:G`,
                 {
                   method: 'GET',
                   headers: {
@@ -245,7 +245,7 @@ async function modifyPage() {
           ) {
             showLoadingIndicator();
             let response = await fetch(
-              `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:F`,
+              `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:G`,
               {
                 method: 'GET',
                 async: true,
@@ -263,7 +263,8 @@ async function modifyPage() {
             const resultArray = [];
 
             (body?.values || []).forEach((item) => {
-              const [title, description, date, category, link, name] = item;
+              const [title, description, date, category, link, name, userName] =
+                item;
               const existingObject = resultArray.find(
                 (obj) => obj.date === date
               );
@@ -275,11 +276,14 @@ async function modifyPage() {
                   category,
                   link,
                   name,
+                  userName,
                 });
               } else {
                 resultArray.push({
                   date,
-                  items: [{ title, description, category, link, name }],
+                  items: [
+                    { title, description, category, link, name, userName },
+                  ],
                 });
               }
             });
@@ -402,7 +406,14 @@ async function modifyPage() {
                                     </Tag>
                                   )}
                                   {item?.name && (
-                                    <Tooltip title={item?.name} color="#425FC7">
+                                    <Tooltip
+                                      title={`${
+                                        item?.userName
+                                          ? `${item?.userName}`
+                                          : ''
+                                      } (${item?.name})`}
+                                      color="#425FC7"
+                                    >
                                       <svg
                                         viewBox="0 0 448 512"
                                         width="14"
