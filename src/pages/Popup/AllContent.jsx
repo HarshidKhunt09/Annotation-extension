@@ -44,7 +44,7 @@ const AllContent = () => {
 
   return (
     <>
-      {/* <CheckoutPage /> */}
+      <CheckoutPage />
       {currentScreen === SCREENS?.LOGIN && <Login />}
       {currentScreen === SCREENS?.SHEET && <SheetForm />}
       {currentScreen === SCREENS?.ADD_ANNOTATION && <AddAnnotationForm />}

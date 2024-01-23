@@ -60,7 +60,11 @@ exports.createCheckoutSession = functions.https.onRequest(async (req, res) => {
         },
       });
 
-      res.status(200).json({ sessionId: session.id });
+      const sessionData = await stripe.checkout.sessions.retrieve(session.id);
+
+      res.status(200).json({
+        data: { sessionId: session.id, sessionUrl: sessionData?.url },
+      });
     } catch (error) {
       console.error('Error creating Checkout Session:', error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -94,3 +98,4 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     return res.sendStatus(200);
   });
 });
+//firebase deploy --only functions

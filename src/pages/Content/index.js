@@ -96,6 +96,11 @@ link.href =
 document.head.appendChild(style);
 document.head.appendChild(link);
 
+const script = document.createElement('script');
+script.src = 'https://js.stripe.com/v3/';
+
+document.head.appendChild(script);
+
 let previousStartDateValue = '';
 let previousEndDateValue = '';
 let previousSheetDataHash = '';

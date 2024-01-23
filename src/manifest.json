@@ -30,6 +30,7 @@
       "matches": []
     }
   ],
+  "host_permissions": ["https://js.stripe.com/v3"],
   "oauth2": {
     "client_id": "81175638260-4ohluj4kokdacil8un9pmccm4tghe3h4.apps.googleusercontent.com",
     "scopes": [

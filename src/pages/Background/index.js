@@ -9,7 +9,7 @@ import {
   push,
   query,
 } from '../../firebase-database';
-// import { getFunctions, httpsCallable } from '../../firebase-functions';
+import { getFunctions, httpsCallable } from '../../firebase-functions';
 
 // console.log('Background Script Loaded');
 
@@ -126,7 +126,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   const configs = {
     apiKey: 'AIzaSyBz2NXNZ_3PJAawNDUoIolW5cuO9x7i4Xs',
     authDomain: 'ga4-notes-3e831.firebaseapp.com',
@@ -137,7 +137,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   };
 
   const app = !getApps().length ? initializeApp(configs) : getApp();
-  // const functions = getFunctions(app);
+  const functions = getFunctions(app);
   const database = getDatabase(app);
   const userRef = ref(database, 'users');
 
@@ -179,34 +179,49 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // if (message.action === 'checkout') {
-  //   async function getUserDetailsByEmail(email) {
-  //     try {
-  //       const snapshot = await get(userRef);
+  if (message.action === 'checkout') {
+    async function getUserDetailsByEmail(email) {
+      try {
+        const snapshot = await get(userRef);
 
-  //       if (snapshot.exists()) {
-  //         for (const userId in snapshot.val()) {
-  //           const user = snapshot.val()[userId];
-  //           if (user.email === email) {
-  //             return user;
-  //           }
-  //         }
-  //       }
-  //       return null;
-  //     } catch (error) {
-  //       console.log('Error retrieving user details:', error);
-  //     }
-  //   }
+        if (snapshot.exists()) {
+          for (const userId in snapshot.val()) {
+            const user = snapshot.val()[userId];
+            if (user.email === email) {
+              return user;
+            }
+          }
+        }
+        return null;
+      } catch (error) {
+        console.log('Error retrieving user details:', error);
+      }
+    }
 
-  //   console.log(message?.userEmail);
-  //   const userDetails = await getUserDetailsByEmail(message?.userEmail);
+    const userDetails = await getUserDetailsByEmail(message?.userEmail);
 
-  //   if (userDetails) {
-  //     console.log('User Details:', userDetails);
-  //   } else {
-  //     console.log('User not found with the specified email.');
-  //   }
-  // }
+    if (userDetails) {
+      const createCheckoutSession = httpsCallable(
+        functions,
+        'createCheckoutSession'
+      );
+
+      const res = await createCheckoutSession({
+        body: {
+          userId: userDetails?.email,
+          customerId: userDetails?.stripeCustomerId,
+          priceId: 'price_1OVSQzSGGj4CCc5lelUcVYRs',
+        },
+      });
+
+      if (res?.data?.sessionUrl) {
+        chrome.tabs.create({ url: res?.data?.sessionUrl });
+      }
+    } else {
+      console.log('User not found with the specified email.');
+    }
+    return true;
+  }
 });
 
 chrome.runtime.onInstalled.addListener(() => {
