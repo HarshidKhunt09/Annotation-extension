@@ -4,17 +4,20 @@ import { SCREENS } from '../../../utils/constant';
 import Login from './components/Login';
 import SheetForm from './components/SheetForm';
 import AddAnnotationForm from './components/AddAnnotationForm';
-import CheckoutPage from './components/CheckoutPage';
+// import CheckoutPage from './components/CheckoutPage';
 
 const AllContent = () => {
   const {
     dispatch,
     state: { currentScreen },
   } = useContext(AppContext);
+  // const [paymentStatus, setPaymentStatus] = useState(false);
 
   useEffect(() => {
     const getItems = async () => {
       const items = await chrome.storage.local.get();
+
+      console.log('items', items);
       try {
         chrome.identity.getAuthToken(
           { interactive: false },
@@ -44,7 +47,7 @@ const AllContent = () => {
 
   return (
     <>
-      <CheckoutPage />
+      {/* <CheckoutPage /> */}
       {currentScreen === SCREENS?.LOGIN && <Login />}
       {currentScreen === SCREENS?.SHEET && <SheetForm />}
       {currentScreen === SCREENS?.ADD_ANNOTATION && <AddAnnotationForm />}

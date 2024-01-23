@@ -9,7 +9,14 @@ import {
   push,
   query,
 } from '../../firebase-database';
-import { getFunctions, httpsCallable } from '../../firebase-functions';
+// import { getFunctions, httpsCallable } from '../../firebase-functions';
+// import {
+//   getFirestore,
+//   collection,
+//   query as firestoreQuery,
+//   where,
+//   getDocs,
+// } from 'firebase/firestore';
 
 // console.log('Background Script Loaded');
 
@@ -126,7 +133,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const configs = {
     apiKey: 'AIzaSyBz2NXNZ_3PJAawNDUoIolW5cuO9x7i4Xs',
     authDomain: 'ga4-notes-3e831.firebaseapp.com',
@@ -137,91 +144,217 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   };
 
   const app = !getApps().length ? initializeApp(configs) : getApp();
-  const functions = getFunctions(app);
+  // const functions = getFunctions(app);
   const database = getDatabase(app);
   const userRef = ref(database, 'users');
+  // const db = getFirestore(app);
 
-  if (message.action === 'loadFirebase') {
-    const userQuery = query(
-      userRef,
-      orderByChild('email'),
-      equalTo(message?.userData?.email)
-    );
+  // if (message.action === 'loadFirebase') {
+  //   const userQuery = query(
+  //     userRef,
+  //     orderByChild('email'),
+  //     equalTo(message?.userData?.email)
+  //   );
 
-    try {
-      // const createStripeCustomer = httpsCallable(
-      //   functions,
-      //   'createStripeCustomer'
-      // );
+  //   try {
+  //     const createStripeCustomer = httpsCallable(
+  //       functions,
+  //       'createStripeCustomer'
+  //     );
 
-      const fetchQuery = async () => {
-        const snapshot = await get(userQuery);
-        if (snapshot.exists()) {
-          sendResponse({ isExist: true });
-        } else {
-          const newUserRef = push(userRef);
-          await set(newUserRef, message?.userData);
+  //     const fetchQuery = async () => {
+  //       const snapshot = await get(userQuery);
+  //       if (snapshot.exists()) {
+  //         console.log('SEND SENDSENDSENDSEND');
+  //         sendResponse({ isExist: true });
+  //       } else {
+  //         const newUserRef = push(userRef);
+  //         await set(newUserRef, message?.userData);
 
-          // await createStripeCustomer({
-          //   body: {
-          //     email: message?.userData?.email,
-          //     displayName: message?.userData?.name,
-          //   },
-          // });
-          sendResponse({ userRef: newUserRef });
-        }
-      };
+  //         await createStripeCustomer({
+  //           body: {
+  //             email: message?.userData?.email,
+  //             displayName: message?.userData?.name,
+  //           },
+  //         });
+  //         sendResponse({ userRef: newUserRef });
+  //       }
+  //     };
 
-      fetchQuery();
-    } catch (error) {
-      sendResponse({ error: 'Error processing loadFirebase message' });
-    }
-    return true;
-  }
-
-  if (message.action === 'checkout') {
-    async function getUserDetailsByEmail(email) {
+  //     fetchQuery();
+  //   } catch (error) {
+  //     sendResponse({ error: 'Error processing loadFirebase message' });
+  //   }
+  //   return true;
+  // }
+  if (message.action === 'launchWindow') {
+    (async () => {
       try {
-        const snapshot = await get(userRef);
+        function revokeToken() {
+          return new Promise((resolve, reject) => {
+            chrome.identity.getAuthToken(
+              { interactive: false },
+              (current_token) => {
+                if (chrome.runtime.lastError) {
+                  resolve('No token to revoke');
+                  return;
+                }
+                if (!chrome.runtime.lastError) {
+                  chrome.identity.removeCachedAuthToken({
+                    token: current_token,
+                  });
+                  const xhr = new XMLHttpRequest();
+                  xhr.open(
+                    'GET',
+                    'https://accounts.google.com/o/oauth2/revoke?token=' +
+                      current_token
+                  );
+                  xhr.onload = function () {
+                    if (xhr.status === 200) {
+                      resolve('Token revoked successfully');
+                    } else {
+                      reject(new Error('Token revocation failed'));
+                    }
+                  };
+                  xhr.onerror = function () {
+                    reject(new Error('Network error'));
+                  };
+                  xhr.send();
+                } else {
+                  reject(new Error('Failed to get current token'));
+                }
+              }
+            );
+          });
+        }
 
-        if (snapshot.exists()) {
-          for (const userId in snapshot.val()) {
-            const user = snapshot.val()[userId];
-            if (user.email === email) {
-              return user;
+        const revokeResponse = await revokeToken();
+
+        if (revokeResponse) {
+          await new Promise((resolve) => {
+            chrome.identity.clearAllCachedAuthTokens(resolve);
+          });
+          const token = await new Promise((resolve) => {
+            chrome.identity.getAuthToken({ interactive: true }, resolve);
+          });
+
+          const response = await fetch(
+            'https://www.googleapis.com/oauth2/v2/userinfo',
+            {
+              headers: {
+                Authorization: 'Bearer ' + token,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data?.email) {
+            const userQuery = query(
+              userRef,
+              orderByChild('email'),
+              equalTo(data?.email)
+            );
+
+            try {
+              // const createStripeCustomer = httpsCallable(
+              //   functions,
+              //   'createStripeCustomer'
+              // );
+
+              const fetchQuery = async () => {
+                const snapshot = await get(userQuery);
+                if (snapshot.exists()) {
+                  chrome.storage.local.set({
+                    email: data?.email,
+                  });
+                  chrome.storage.local.set({
+                    name: data?.name,
+                  });
+                  sendResponse({ isExist: true });
+                } else {
+                  const newUserRef = push(userRef);
+                  await set(newUserRef, data);
+
+                  // await createStripeCustomer({
+                  //   body: {
+                  //     email: data?.email,
+                  //     displayName: data?.name,
+                  //   },
+                  // });
+                  if (newUserRef) {
+                    chrome.storage.local.set({
+                      email: data?.email,
+                    });
+                    chrome.storage.local.set({
+                      name: data?.name,
+                    });
+                    sendResponse({ userRef: newUserRef });
+                  }
+                }
+              };
+
+              fetchQuery();
+            } catch (error) {
+              sendResponse({ error: 'Error processing loadFirebase message' });
             }
           }
         }
-        return null;
       } catch (error) {
-        console.log('Error retrieving user details:', error);
+        console.log('Error fetching user details:', error);
       }
-    }
+    })();
 
-    const userDetails = await getUserDetailsByEmail(message?.userEmail);
-
-    if (userDetails) {
-      const createCheckoutSession = httpsCallable(
-        functions,
-        'createCheckoutSession'
-      );
-
-      const res = await createCheckoutSession({
-        body: {
-          userId: userDetails?.email,
-          customerId: userDetails?.stripeCustomerId,
-          priceId: 'price_1OVSQzSGGj4CCc5lelUcVYRs',
-        },
-      });
-
-      if (res?.data?.sessionUrl) {
-        chrome.tabs.create({ url: res?.data?.sessionUrl });
-      }
-    } else {
-      console.log('User not found with the specified email.');
-    }
     return true;
   }
+
+  // if (message.action === 'checkout') {
+  //   async function getUserDetailsByEmail(email) {
+  //     try {
+  //       const snapshot = await get(userRef);
+
+  //       if (snapshot.exists()) {
+  //         for (const userId in snapshot.val()) {
+  //           const user = snapshot.val()[userId];
+  //           if (user.email === email) {
+  //             return user;
+  //           }
+  //         }
+  //       }
+  //       return null;
+  //     } catch (error) {
+  //       console.log('Error retrieving user details:', error);
+  //     }
+  //   }
+
+  //   const userDetails = await getUserDetailsByEmail(message?.userEmail);
+
+  //   if (userDetails) {
+  //     const createCheckoutSession = httpsCallable(
+  //       functions,
+  //       'createCheckoutSession'
+  //     );
+
+  //     const res = await createCheckoutSession({
+  //       body: {
+  //         userId: userDetails?.email,
+  //         customerId: userDetails?.stripeCustomerId,
+  //         priceId: 'price_1OVSQzSGGj4CCc5lelUcVYRs',
+  //       },
+  //     });
+
+  //     if (res?.data?.sessionUrl) {
+  //       chrome.tabs.create({ url: res?.data?.sessionUrl });
+  //     }
+  //   } else {
+  //     console.log('User not found with the specified email.');
+  //   }
+  //   return true;
+  // }
 });
 
 chrome.runtime.onInstalled.addListener(() => {

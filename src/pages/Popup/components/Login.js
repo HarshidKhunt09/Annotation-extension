@@ -6,7 +6,7 @@ import React, { useContext, useState } from 'react';
 //   getDocs,
 //   addDoc,
 // } from 'firebase/firestore';
-import { query, orderByChild, equalTo, get, push } from 'firebase/database';
+// import { query, orderByChild, equalTo, get, push } from 'firebase/database';
 import { SCREENS } from '../../../../utils/constant';
 import { AppContext } from '../context/AppContext';
 import { Spin } from 'antd';
@@ -18,35 +18,6 @@ import { LoadingOutlined } from '@ant-design/icons';
 const Login = () => {
   const { dispatch } = useContext(AppContext);
   const [isLoading, setIsLoading] = useState(false);
-
-  function revokeToken(callback) {
-    chrome.identity.getAuthToken(
-      { interactive: false },
-      function (current_token) {
-        if (!chrome.runtime.lastError) {
-          chrome.identity.removeCachedAuthToken({ token: current_token });
-          const xhr = new XMLHttpRequest();
-          xhr.open(
-            'GET',
-            'https://accounts.google.com/o/oauth2/revoke?token=' + current_token
-          );
-          xhr.onload = function () {
-            if (xhr.status === 200) {
-              callback(null);
-            } else {
-              callback(new Error('Token revocation failed'));
-            }
-          };
-          xhr.onerror = function () {
-            callback(new Error('Network error'));
-          };
-          xhr.send();
-        } else {
-          callback(new Error('Failed to get current token'));
-        }
-      }
-    );
-  }
 
   // const handleBtn = () => {
   //   chrome.identity.getAuthToken(
@@ -88,136 +59,84 @@ const Login = () => {
           disabled={isLoading}
           onClick={async () => {
             setIsLoading(true);
-            revokeToken(function () {
-              chrome.identity.clearAllCachedAuthTokens(() => {
-                chrome.identity.getAuthToken(
-                  { interactive: true },
-                  function (token) {
-                    if (chrome.runtime.lastError) {
-                      console.log(chrome.runtime.lastError.message);
-                      setIsLoading(false);
-                      return;
-                    }
-                    // const tokenInfoEndpoint = `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${token}`;
-                    // fetch(tokenInfoEndpoint)
-                    //   .then((response) => {
-                    //     if (!response.ok) {
-                    //       throw new Error(
-                    //         `HTTP error! Status: ${response.status}`
-                    //       );
-                    //     }
-                    //     return response.json();
-                    //   })
-                    //   .then((tokenInfo) => {
-                    //     // Access the information, including expiry date
-                    //     const expiresIn = tokenInfo.expires_in;
-                    //     console.log(`Token expires in ${expiresIn} seconds`);
-                    //   })
-                    //   .catch((error) => {
-                    //     console.error('Error fetching token info:', error);
-                    //   });
-                    fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                      headers: {
-                        Authorization: 'Bearer ' + token,
-                      },
-                    })
-                      .then((response) => response.json())
-                      .then(async (data) => {
-                        if (data?.email) {
-                          chrome.runtime.sendMessage(
-                            {
-                              action: 'loadFirebase',
-                              userData: data,
-                            },
-                            (response) => {
-                              // console.log('RES LOGIN', response);
-                              if (!response?.error) {
-                                dispatch({
-                                  type: 'SET_CURRENT_SCREEN',
-                                  data: SCREENS?.SHEET,
-                                });
 
-                                console.log(data);
-                                chrome.storage.local.set({
-                                  email: data?.email,
-                                });
-                                chrome.storage.local.set({
-                                  name: data?.name,
-                                });
-                              }
-                            }
-                          );
+            // Wrap the entire code in an immediately invoked async function
+            // (async () => {
+            //   try {
+            //     // Clear cached auth tokens
+            //     await new Promise((resolve) => {
+            //       chrome.identity.clearAllCachedAuthTokens(resolve);
+            //     });
 
-                          // const q = query(
-                          //   userCollection,
-                          //   where('email', '==', data?.email)
-                          // );
+            //     // Get auth token interactively
+            //     const token = await new Promise((resolve) => {
+            //       chrome.identity.getAuthToken({ interactive: true }, resolve);
+            //     });
 
-                          // try {
-                          //   const querySnapshot = await getDocs(q);
+            //     // Introduce a delay before making the fetch call
+            //     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-                          //   if (!querySnapshot.empty) {
-                          //     console.log(
-                          //       'Email already exists in the database.'
-                          //     );
-                          //   } else {
-                          //     console.log(
-                          //       'Email does not exist in the database. Proceeding to add new data.'
-                          //     );
+            //     const response = await fetch(
+            //       'https://www.googleapis.com/oauth2/v2/userinfo',
+            //       {
+            //         headers: {
+            //           Authorization: 'Bearer ' + token,
+            //         },
+            //       }
+            //     );
 
-                          //     await addDoc(userCollection, data);
-                          //     console.log('User data added successfully!');
-                          //   }
+            //     if (!response.ok) {
+            //       throw new Error(`HTTP error! Status: ${response.status}`);
+            //     }
 
-                          //   dispatch({
-                          //     type: 'SET_CURRENT_SCREEN',
-                          //     data: SCREENS?.SHEET,
-                          //   });
-                          //   chrome.storage.local.set({ token: token });
-                          // } catch (error) {
-                          //   console.error('Error fetching user details:', error);
-                          // }
+            //     const data = await response.json();
 
-                          // const userQuery = query(
-                          //   userRef,
-                          //   orderByChild('email'),
-                          //   equalTo(data?.email)
-                          // );
+            //     if (data?.email) {
+            //       console.log('Before firebase');
 
-                          // try {
-                          // const snapshot = await get(userQuery);
+            //       // Introduce a delay before making the sendMessage call
+            //       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-                          // if (snapshot.exists()) {
-                          //   dispatch({
-                          //     type: 'SET_CURRENT_SCREEN',
-                          //     data: SCREENS?.SHEET,
-                          //   });
-                          //   // chrome.storage.local.set({ token: token });
-                          //   chrome.storage.local.set({ email: data?.email });
-                          // } else {
-                          //   const newUserRef = push(userRef, data);
+            //       const firebaseResponse = await new Promise((resolve) => {
+            //         chrome.runtime.sendMessage(
+            //           {
+            //             action: 'loadFirebase',
+            //             userData: data,
+            //           },
+            //           resolve
+            //         );
+            //       });
 
-                          //   if (newUserRef) {
-                          //     // console.log('User data pushed successfully!');
-                          //   } else {
-                          //     // console.log('Error pushing user data.');
-                          //   }
-                          // }
+            //       console.log('RES LOGIN', firebaseResponse);
 
-                          // chrome.storage.local.set({ token: token });
-                          // } catch (error) {
-                          //   // console.log('Error fetching user details:', error);
-                          // }
-                        }
-                      })
-                      .catch((error) => {
-                        // console.log('Error fetching user details:', error);
-                      });
-                    setIsLoading(false);
-                  }
-                );
-              });
+            //       if (!firebaseResponse?.error) {
+            //         chrome.storage.local.set({
+            //           email: data?.email,
+            //         });
+            //         chrome.storage.local.set({
+            //           name: data?.name,
+            //         });
+
+            //         console.log(data);
+            //       }
+            //     }
+            //   } catch (error) {
+            //     console.log('Error fetching user details:', error);
+            //   } finally {
+            //     // setIsLoading(false);
+            //   }
+            // })();
+
+            const res = await chrome.runtime.sendMessage({
+              action: 'launchWindow',
             });
+
+            if (res) {
+              dispatch({
+                type: 'SET_CURRENT_SCREEN',
+                data: SCREENS?.SHEET,
+              });
+            }
           }}
         >
           <div class="d-flex align-center justify-center">
